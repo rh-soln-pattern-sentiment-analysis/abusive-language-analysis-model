@@ -57,7 +57,7 @@ producer = KafkaProducer(
 )
 
 # Load the BERT model and tokenizer
-model_name = 'nlptown/bert-base-multilingual-uncased-sentiment'
+model_name = 'Hate-speech-CNERG/english-abusive-MuRIL'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -74,13 +74,16 @@ for message in consumer:
     inputs = tokenizer(text, padding=True, truncation=True, max_length=512, return_tensors='pt')
     inputs = inputs.to(device)
 
-    # Use the BERT model to predict the sentiment
+    # Use the BERT model to predict the text being abusive and if yes, then send that to another kafka topic for moderation
     outputs = model(**inputs)
+    print(outputs)
     predictions = torch.softmax(outputs.logits, dim=1).detach().cpu().numpy()
     sentiment = int(predictions.argmax(axis=1)[0]) - 1  # Convert 0-4 to -1-3
+    print(sentiment)
     customer_id = 1023
     product_id = 1
     sentiment_output = f"{customer_id},{product_id},{sentiment}" 
     # Produce a response message with the sentiment
-    response_message = f"{timestamp} {customer_id},{product_id}, {text} ({'positive' if sentiment > 0 else 'negative' if sentiment < 0 else 'neutral'})"
-    producer.send(produce_topic, response_message.encode('utf-8'))
+    response_message = f"{timestamp} {customer_id},{product_id}, {text} ({'Non-Abusive' if sentiment < 0 else 'Abusive'})"
+    if sentiment == 0:
+        producer.send(produce_topic, response_message.encode('utf-8'))

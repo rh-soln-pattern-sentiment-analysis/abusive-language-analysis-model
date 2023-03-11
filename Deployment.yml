@@ -3,7 +3,7 @@ apiVersion: apps/v1
 metadata:
   annotations:
     app.openshift.io/vcs-uri: >-
-      https://github.com/rh-soln-pattern-sentiment-analysis/sentiment-analysis-model.git
+      https://github.com/rh-soln-pattern-sentiment-analysis/abusive-language-analysis-model.git
     deployment.kubernetes.io/revision: '3'
     image.openshift.io/triggers: >-
       [{"from":{"kind":"ImageStreamTag","name":"senti2:latest","namespace":"test"},"fieldPath":"spec.template.spec.containers[?(@.name==\"senti2\")].image","pause":"false"}]

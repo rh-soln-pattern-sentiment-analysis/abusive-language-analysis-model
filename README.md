@@ -1,3 +1,3 @@
-# sentiment-analysis
+# abusive-language-analysis
 
-Repository for sentiment-anaysis related code to be used in AI/ML use case.
+Repository for abusive language analysis related code - to be used for text analysis and part of AI/ML.
