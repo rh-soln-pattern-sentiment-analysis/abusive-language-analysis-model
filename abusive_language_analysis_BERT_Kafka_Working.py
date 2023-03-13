@@ -29,7 +29,7 @@ from datetime import datetime
 TRANSFORMERS_CACHE = os.environ['TRANSFORMERS_CACHE']
 bootstrap_servers = os.environ['bootstrap_servers']
 topic = os.environ['topic']
-produce_topic = os.environ['moderate_topic']
+produce_topic = os.environ['language_topic']
 username = os.environ['username']
 password = os.environ['password']
 sasl_mechanism = os.environ['sasl_mechanism']
