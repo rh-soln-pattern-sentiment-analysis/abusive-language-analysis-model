@@ -29,7 +29,8 @@ from datetime import datetime
 TRANSFORMERS_CACHE = os.environ['TRANSFORMERS_CACHE']
 bootstrap_servers = os.environ['bootstrap_servers']
 topic = os.environ['topic']
-produce_topic = os.environ['language_topic']
+good_language_topic = os.environ['good-language-topic']
+not_good_language_topic = os.environ['not-good-language-topic']
 username = os.environ['username']
 password = os.environ['password']
 sasl_mechanism = os.environ['sasl_mechanism']
@@ -86,4 +87,6 @@ for message in consumer:
     # Produce a response message with the sentiment
     response_message = f"{timestamp} {customer_id},{product_id}, {text} ({'Non-Abusive' if sentiment < 0 else 'Abusive'})"
     if sentiment == 0:
-        producer.send(produce_topic, response_message.encode('utf-8'))
+        producer.send(not_good_language_topic, response_message.encode('utf-8'))
+    else:
+         producer.send(good_language_topic, response_message.encode('utf-8'))   
