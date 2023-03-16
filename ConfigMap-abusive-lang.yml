@@ -12,4 +12,5 @@ data:
   sasl_mechanism: PLAIN
   security_protocol: SASL_SSL
   topic: changeme
+  produce_topic: changeme
   username: changeme
