@@ -91,7 +91,7 @@ for message in consumer:
         response_message = f"{product_id}, {review_text} ({'Non-Abusive' if sentiment < 0 else 'Abusive'})"
         if sentiment == 0:
             json_string = json.dumps({'sentiment': sentiment, 'product_id': product_id, 'browser': browser, 'region': region, 'review_text': review_text, 'response': response})
-            producer.send(bad-languague-topic, json_string)
+            producer.send(not_good_language_topic, json_string)
         else:
             json_string = json.dumps({'sentiment': sentiment, 'product_id': product_id, 'browser': browser, 'region': region, 'review_text': review_text, 'response': response})        
             producer.send(good-languague-topic, json_string)   
