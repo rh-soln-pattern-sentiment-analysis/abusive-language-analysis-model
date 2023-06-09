@@ -40,15 +40,8 @@ producer = KafkaProducer(
     sasl_plain_password=password,
     security_protocol=security_protocol,
     sasl_mechanism=sasl_mechanism,
-    value_serializer=lambda m: json.dumps(m).encode('utf-8')        
+#    value_serializer=lambda m: json.dumps(m).encode('utf-8')        
 )
-
-# Load the BERT model and tokenizer
-model_name = 'nlptown/bert-base-multilingual-uncased-sentiment'
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForSequenceClassification.from_pretrained(model_name)
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = model.to(device)
 
 # Load the BERT model and tokenizer
 model_name = 'Hate-speech-CNERG/english-abusive-MuRIL'
@@ -62,40 +55,28 @@ print("Entering for loop")
 for message in consumer:
     try:    
         # Get the text message from the Kafka message
-        print(message)
         sentiment_data = message.value
-        product_id = sentiment_data["product_id"]
-#        customer_id = sentiment_data["user"]["customer_id"]
-        browser = sentiment_data["user"]["browser"]
-        region = sentiment_data["user"]["region"]
-        review_text = sentiment_data["review_text"]
-        #print("Review Text Message BEING PRINTED")
-        #print(review_text)   
+        review_text = sentiment_data["data"]["review_text"]
         inputs = tokenizer(review_text, padding=True, truncation=True, max_length=512, return_tensors='pt')
         inputs = inputs.to(device)
 
         # Use the BERT model to predict the text being abusive and if yes, then send that to another kafka topic for moderation
         outputs = model(**inputs)
-        #print(outputs)
         predictions = torch.softmax(outputs.logits, dim=1).detach().cpu().numpy()
         sentiment = int(predictions.argmax(axis=1)[0]) - 1  # Convert 0-4 to -1-3
-        #print(sentiment)
-        data = {}
-        data['sentiment'] = sentiment
-        data['review_text'] = review_text
         response = f"{'Non-Abusive' if sentiment < 0 else 'Abusive'}"
-        data['response'] = response    
-        json_data = json.dumps(data)
-        # sentiment_output = f"{customer_id},{product_id},{sentiment}" 
-        # Produce a response message with the sentiment
-        response_message = f"{product_id}, {review_text} ({'Non-Abusive' if sentiment < 0 else 'Abusive'})"
+        response_data = {
+            "sentiment_data": sentiment_data,
+            "sentiment": sentiment,
+            "response": response
+        }        
         if sentiment == 0:
-            json_string = json.dumps({'sentiment': sentiment, 'product_id': product_id, 'browser': browser, 'region': region, 'review_text': review_text, 'response': response})
-            producer.send(not_good_language_topic, json_string)
+            json_string = json.dumps(response_data, indent=4)
+            producer.send(not_good_language_topic, json_string.encode('utf-8'))
         else:
-            json_string = json.dumps({'sentiment': sentiment, 'product_id': product_id, 'browser': browser, 'region': region, 'review_text': review_text, 'response': response})        
-            producer.send(good-languague-topic, json_string)   
+            json_string = json.dumps(response_data, indent=4)
+            producer.send(good_language_topic, json_string.encode('utf-8'))   
     except json.JSONDecodeError:
         print("Non-JSON message received, skipping...")
     except KeyError:
-        print("Missing fields in JSON message, skipping...")    
+        print("Missing fields in JSON message, skipping...") 
