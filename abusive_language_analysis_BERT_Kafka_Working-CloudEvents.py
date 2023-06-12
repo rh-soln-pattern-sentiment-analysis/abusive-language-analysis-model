@@ -88,11 +88,12 @@ for message in consumer:
 #        print(sentiment_data)
 
         if score == 0:
-            json_string = json.dumps(response_data, indent=4)
+            json_string = json.dumps(sentiment_data, indent=4)
             producer.send(not_good_language_topic, json_string.encode('utf-8'))
         else:
-            json_string = json.dumps(response_data, indent=4)
-            producer.send(good_language_topic, json_string.encode('utf-8'))   
+            json_string = json.dumps(sentiment_data, indent=4)
+            producer.send(good_language_topic, json_string.encode('utf-8'))
+            
     except json.JSONDecodeError:
         print("Non-JSON message received, skipping...")
     except KeyError:
