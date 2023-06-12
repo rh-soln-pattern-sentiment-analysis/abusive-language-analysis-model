@@ -5,13 +5,13 @@ metadata:
   namespace: globex-mw-user1
 data:
   sasl_mechanism: SCRAM-SHA-512
-  language_topic: bad-language-topic
-  good_language_topic: good-languague-topic
+  language_topic: language-topic
+  good_language_topic: languague-topic
   topic: globex.reviews
   produce_topic: good-languague-topic
   username: CHANGEME
   security_protocol: SASL_PLAINTEXT
   password: CHANGEME
   TRANSFORMERS_CACHE: /app/cache
-  not_good_language_topic: bad-language-topic
+  not_good_language_topic: language-topic
   bootstrap_servers: 'kafka-kafka-bootstrap.globex-mw-user1.svc.cluster.local:9092'
