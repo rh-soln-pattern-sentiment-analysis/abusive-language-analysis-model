@@ -10,4 +10,4 @@ RUN chown -R 1001:0 /app\
 &&  chmod -R +x /app
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r /app/requirements.txt
-CMD ["python", "/app/abusive_language_analysis_BERT_Kafka_Working.py"]
+CMD ["python", "/app/abusive_language_analysis_BERT_Kafka_Working-CloudEvents.py"]
