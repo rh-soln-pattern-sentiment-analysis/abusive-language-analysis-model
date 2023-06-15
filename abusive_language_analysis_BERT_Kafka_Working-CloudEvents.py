@@ -64,7 +64,7 @@ for message in consumer:
         # Parse the CloudEvent from the JSON payload
         sentiment_data =  json.loads(json_payload)
  #       print(sentiment_data)
-        sentiment_event_data = sentiment_data['data']
+        sentiment_event_data = sentiment_data
         try:
             review_text = sentiment_event_data['review_text']
         except KeyError:
@@ -84,15 +84,20 @@ for message in consumer:
         sentiment_event_data['response'] = response
         
 #        print(sentiment_event_data)
-        sentiment_data['data'] = sentiment_event_data       
+        #sentiment_data['data'] = sentiment_event_data       
 #        print(sentiment_data)
 
         if score == 0:
             json_string = json.dumps(sentiment_data, indent=4)
             producer.send(not_good_language_topic, json_string.encode('utf-8'))
         else:
-            json_string = json.dumps(sentiment_data, indent=4)
-            producer.send(good_language_topic, json_string.encode('utf-8'))
+            json_string = json.dumps(sentiment_data)
+            headers = [
+                        ("Ce-Specversion","1.0".encode('utf-8')),
+                        ("Ce-Type","review-moderated-event".encode('utf-8')),
+                        ("Ce-Source","review-moderated".encode('utf-8'))
+                        ]
+            producer.send(good_language_topic, json_string.encode('utf-8') , None, headers)
             
     except json.JSONDecodeError:
         print("Non-JSON message received, skipping...")
