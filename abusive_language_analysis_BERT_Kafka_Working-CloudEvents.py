@@ -24,6 +24,12 @@ username = os.environ['username']
 password = os.environ['password']
 sasl_mechanism = os.environ['sasl_mechanism']
 security_protocol = os.environ['security_protocol']
+moderated_reviews_sink = os.environ['moderated_reviews_sink']
+denied_reviews_sink = os.environ['denied_reviews_sink']
+attributes = {
+    "type": os.environ['ce_type'],
+    "source": os.environ['ce_source']
+}
 
 # Set up a Kafka consumer
 consumer = KafkaConsumer(
@@ -36,16 +42,6 @@ consumer = KafkaConsumer(
     auto_offset_reset='latest',
     enable_auto_commit=True,
 #    value_deserializer=lambda m: json.loads(m.decode('utf-8'))    
-)
-
-# Set up a Kafka producer
-producer = KafkaProducer(
-    bootstrap_servers=bootstrap_servers,
-    sasl_plain_username=username,
-    sasl_plain_password=password,
-    security_protocol=security_protocol,
-    sasl_mechanism=sasl_mechanism,
-#    value_serializer=lambda m: json.dumps(m).encode('utf-8')        
 )
 
 # Load the BERT model and tokenizer
@@ -61,12 +57,14 @@ for message in consumer:
     try:    
         # Get the text message from the Kafka message
         json_payload = message.value
+        print("value", message.value)
+        print("headers", message.headers)
         # Parse the CloudEvent from the JSON payload
         sentiment_data =  json.loads(json_payload)
  #       print(sentiment_data)
-        sentiment_event_data = sentiment_data
+        
         try:
-            review_text = sentiment_event_data['review_text']
+            review_text = sentiment_data['review_text']
         except KeyError:
             print("Not valid data input syntax")
             continue
@@ -80,24 +78,20 @@ for message in consumer:
         response = f"{'Non-Abusive' if score < 0 else 'Abusive'}"    
 
         # Capture language analysis output as sentiment
-        sentiment_event_data['score'] = score
-        sentiment_event_data['response'] = response
+        sentiment_data['score'] = score
+        sentiment_data['response'] = response
         
 #        print(sentiment_event_data)
         #sentiment_data['data'] = sentiment_event_data       
 #        print(sentiment_data)
+        event = CloudEvent(attributes, sentiment_data)
+        headers, body = to_binary(event)
 
         if score == 0:
-            json_string = json.dumps(sentiment_data, indent=4)
-            producer.send(not_good_language_topic, json_string.encode('utf-8'))
-        else:
-            json_string = json.dumps(sentiment_data)
-            headers = [
-                        ("ce_specversion","1.0".encode('utf-8')),
-                        ("ce_type","review-moderated-event".encode('utf-8')),
-                        ("ce_source","review-moderated".encode('utf-8'))
-                        ]
-            producer.send(good_language_topic, json_string.encode('utf-8') , None, headers)
+            requests.post(denied_reviews_sink, data=body, headers=headers)
+        else :
+            requests.post(moderated_reviews_sink, data=body, headers=headers)
+
             
     except json.JSONDecodeError:
         print("Non-JSON message received, skipping...")
