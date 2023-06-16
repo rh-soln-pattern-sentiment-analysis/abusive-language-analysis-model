@@ -93,9 +93,9 @@ for message in consumer:
         else:
             json_string = json.dumps(sentiment_data)
             headers = [
-                        ("Ce-Specversion","1.0".encode('utf-8')),
-                        ("Ce-Type","review-moderated-event".encode('utf-8')),
-                        ("Ce-Source","review-moderated".encode('utf-8'))
+                        ("ce_specversion","1.0".encode('utf-8')),
+                        ("ce_type","review-moderated-event".encode('utf-8')),
+                        ("ce_source","review-moderated".encode('utf-8'))
                         ]
             producer.send(good_language_topic, json_string.encode('utf-8') , None, headers)
             
