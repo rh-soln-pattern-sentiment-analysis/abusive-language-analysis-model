@@ -21,7 +21,7 @@
             "region": "India"
         },
         "rating": 0,
-        "timestamp": "2023-06-15T19:36:24.895029Z",
+        "timestamp": "1686568446615",
         "review_text": "This is good way to go to market",
         "score": -1,
         "response": "Non-Abusive"
@@ -158,7 +158,17 @@ for message in consumer:
         point = influxdb_client.Point(bucket)
 
         # Set the time for the data point
-        point.time(parser.parse(json_data["time"]))
+        timestamp = json_data_data["timestamp"]
+        if isinstance(timestamp, str):
+            timestamp = float(timestamp)
+
+        datetime = datetime.fromtimestamp(timestamp/1000.0)
+        print(datetime)
+        #datetime = datetime.strptime(datetime, '%m/%d/%Y, %H:%M:%S')
+        datetime_str = datetime.strftime("%m/%d/%Y, %H:%M:%S")
+        print(datetime_str)
+
+        point.time(parser.parse(datetime_str))
 
         # Flatten the "product" field
         product = json_data_data["product"]
